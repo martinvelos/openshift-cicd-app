@@ -3,7 +3,7 @@
 // Run this pipeline on the custom Maven Slave ('maven')
 // Maven Slaves have JDK and Maven installed.
 
-def app_git_repo       = 'https://github.com/elos-tech/openshift-tasks.git'
+def app_git_repo       = 'https://github.com/elos-tech/openshift-cicd-app.git'
 def name_prefix        = 'cicd'
 def components_project = "${name_prefix}-components"
 def app_project_dev    = "${name_prefix}-tasks-dev"
