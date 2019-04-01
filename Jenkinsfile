@@ -7,15 +7,31 @@ def app_project_prod   = "${name_prefix}-tasks-prod"
 def mvnCmd = "mvn -s ./nexus_openshift_settings.xml"
 
 pipeline {
-  agent any //'maven-pod'
+  agent{
+  // Run this pipeline on the custom{ Maven Slave pod} which has JDK and Maven installed.
+    kubernetes {
+      label 'maven-pod'
+      cloud 'openshift'
+      defaultContainer 'jnlp'
+      yaml """
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    some-label: some-label-value
+spec:
+  containers:
+  - name: jnlp
+    image: docker-registry.default.svc:5000/${name_prefix}-jenkins/jenkins-agent-appdev
+    command:
+    - cat
+    tty: true
+    note: doesnt have to be image name, my bad with wrong naming for pointing from defaultContainer..
+"""
+    }
+  }
   stages {
 //.. here to bluntly put the groovy scriptZ
-
-
-
-// Run this pipeline on the custom Maven Slave ('maven')
-// Maven Slaves have JDK and Maven installed.
-
 
 //podTemplate(
   //label: "maven-pod",
