@@ -190,46 +190,53 @@ pipeline {
       }
     }
 
-//    // Blue/Green Deployment into Production
-//    // Do not activate the new version yet.
-//    def destApp   = "tasks-green"
-//    def activeApp = ""
-//   
-//    stage('Blue/Green Production Deployment') {
-//      // Replace xyz-tasks-dev and xyz-tasks-prod with
-//      // your project names
-//      activeApp = sh(returnStdout: true, script: "oc get route tasks -n ${app_project_prod} -o jsonpath='{ .spec.to.name }'").trim()
-//    
-//      if (activeApp == "tasks-green") {
-//        destApp = "tasks-blue"
-//      }
-//    
-//      echo "Active Application:      " + activeApp
-//      echo "Destination Application: " + destApp
-//    
-//      // Update the Image on the Production Deployment Config
-//      sh "oc set image dc/${destApp} ${destApp}=docker-registry.default.svc:5000/${app_project_dev}/tasks:${prodTag} -n ${app_project_prod}"
-//    
-//      // Update the Config Map which contains the users for the Tasks application
-//      sh "oc delete configmap ${destApp}-config -n ${app_project_prod} --ignore-not-found=true"
-//      sh "oc create configmap ${destApp}-config --from-file=./configuration/application-users.properties --from-file=./configuration/application-roles.properties -n ${app_project_prod}"
-//    
-//      // Deploy the inactive application.
-//      // Replace xyz-tasks-prod with the name of your production project
-//      openshiftDeploy depCfg: destApp, namespace: "${app_project_prod}", verbose: 'false', waitTime: '', waitUnit: 'sec'
-//      openshiftVerifyDeployment depCfg: destApp, namespace: "${app_project_prod}", replicaCount: '1', verbose: 'false', verifyReplicaCount: 'true', waitTime: '', waitUnit: 'sec'
-//      openshiftVerifyService namespace: "${app_project_prod}", svcName: destApp, verbose: 'false'
-//    }
-//    
-//    // Switch stage (user input):
-//    stage('Switch over to new Version') {
-//      input "Switch Production?"
-//    
-//      echo "Switching Production application to ${destApp}."
-//    
-//      // Replace xyz-tasks-prod with the name of your production project
-//      sh 'oc patch route tasks -n ' + app_project_prod + ' -p \'{"spec":{"to":{"name":"' + destApp + '"}}}\''
-//    }
+    stage('Blue/Green Deployment into Production') {
+      environment {
+          version = getVersionFromPom("pom.xml")
+	  devTag  = "${version}-${BUILD_NUMBER}"
+          // The newly built version is not activated yet:
+          destApp   = "tasks-green"
+          activeApp = "tasks-green"//just to test out
+          //activeApp = sh(returnStdout: true, script: "oc get route tasks -n ${app_project_prod} -o jsonpath='{ .spec.to.name }'").trim() // Got called, which is promissing
+      }
+      steps{
+        // Replace xyz-tasks-dev and xyz-tasks-prod with
+        // your project names
+      //script{maybe//activeApp = sh(returnStdout: true, script: "oc get route tasks -n ${app_project_prod} -o jsonpath='{ .spec.to.name }'").trim()
+    script{
+      if (activeApp == "tasks-green") {
+        destApp = "tasks-blue"
+      }
+    
+      echo "Active Application:      " + activeApp
+      echo "Destination Application: " + destApp
+   }//script  
+
+      // Update the Image on the Production Deployment Config
+      //sh "oc set image dc/${destApp} ${destApp}=docker-registry.default.svc:5000/${app_project_dev}/tasks:${prodTag} -n ${app_project_prod}"
+    
+      // Update the Config Map which contains the users for the Tasks application
+      //sh "oc delete configmap ${destApp}-config -n ${app_project_prod} --ignore-not-found=true"
+      //sh "oc create configmap ${destApp}-config --from-file=./configuration/application-users.properties --from-file=./configuration/application-roles.properties -n ${app_project_prod}"
+    
+      // Deploy the inactive application.
+      // Replace xyz-tasks-prod with the name of your production project
+      //openshiftDeploy depCfg: destApp, namespace: "${app_project_prod}", verbose: 'false', waitTime: '', waitUnit: 'sec'
+      //openshiftVerifyDeployment depCfg: destApp, namespace: "${app_project_prod}", replicaCount: '1', verbose: 'false', verifyReplicaCount: 'true', waitTime: '', waitUnit: 'sec'
+      //openshiftVerifyService namespace: "${app_project_prod}", svcName: destApp, verbose: 'false'
+      }
+    }
+    
+    // Switch stage (user input):
+    stage('Switch over to new Version') {
+      steps{
+        input "Switch Production?"
+        echo "Switching Production application to ${destApp}."
+    
+        // Replace xyz-tasks-prod with the name of your production project
+        echo """sh \'oc patch route tasks -n ' + app_project_prod + ' -p \'{"spec":{"to":{"name":"' + destApp + '"}}}\''"""
+      }
+    }
   }//stages
 }
 
