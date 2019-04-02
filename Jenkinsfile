@@ -9,34 +9,33 @@ def app_project_prod   = "${name_prefix}-tasks-prod"
 // settings for our Nexus installation (use the service to
 // bypass the router). The file nexus_openshift_settings.xml
 // needs to be in the Source Code repository.
-def mvnCmd = "mvn -s ./nexus_openshift_settings.xml"
-
+def mvnCmd = "/opt/rh/rh-maven35/root/usr/bin/mvn -s ./nexus_openshift_settings.xml"
+            //^Tested with realpath, but that didn't work either.
 
 pipeline {
-  agent any
-//  {
-//  // Run this pipeline on the custom{ Maven Slave pod} which has JDK and Maven installed.
-//    kubernetes {
-//      label 'maven-pod'
-//      cloud 'openshift'
-//      defaultContainer 'jnlp'
-//      yaml """
-//apiVersion: v1
-//kind: Pod
-//metadata:
-//  labels:
-//    some-label: some-label-value
-//spec:
-//  containers:
-//  - name: maven
-//    image: docker-registry.default.svc:5000/${name_prefix}-jenkins/jenkins-agent-appdev
-//    command:
-//    - cat
-//    tty: true
-//    
-//"""
-//    }
-//  }
+  agent
+  {
+  // Run this pipeline on the custom{ Maven Slave pod} which has JDK and Maven installed.
+    kubernetes {
+      label 'maven-pod'
+      cloud 'openshift'
+      defaultContainer 'jnlp'
+      yaml """
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    some-label: some-label-value
+spec:
+  containers:
+  - name: maven
+    image: docker-registry.default.svc:5000/${name_prefix}-jenkins/jenkins-agent-appdev
+    command:
+    - cat
+    tty: true
+"""
+    }
+  }
   stages {
     //To bluntly wrap the original code as script leaving the groovy syntax in it, was my first attempt.
 
@@ -47,7 +46,7 @@ pipeline {
       }
     }
 
-  
+// This commented block is from original groovy code and most likely can be deleted( after clearing some questions it rises, ideally).  
 //    // Do not run tests in this step
 //    stage('Build war') {
 //    // The following variables need to be defined at the top level
@@ -58,7 +57,6 @@ pipeline {
 //    def artifactId = getArtifactIdFromPom("pom.xml")
 //    def version    = getVersionFromPom("pom.xml")
 //  
-//    // Set the tag for the development image: version + build number
 //    def devTag  = "${version}-${BUILD_NUMBER}"
 //    // Set the tag for the production image: version
 //    def prodTag = "${version}"
@@ -73,8 +71,10 @@ pipeline {
         //|-or other way to set that up?:
         //sh "sleep 600 && which mvn" 
 	echo "sh \"${mvnCmd} clean package -DskipTests"
+	sh "${mvnCmd} clean package -DskipTests"
+	//echo """did not work: sh "export PATH=${M2_HOME}/bin:${PATH} && ${mvnCmd} clean package -DskipTests" """
       }
-     }    
+    }    
     
     // Build .jar with maven:
     stage('Building Java binary') {
@@ -120,8 +120,9 @@ pipeline {
     // Build the OpenShift Image in OpenShift and tag it.
     stage('Build and Tag OpenShift Image') {
       environment {
-          version = getVersionFromPom("pom.xml")
-	  devTag  = "${version}-${BUILD_NUMBER}"
+        version = getVersionFromPom("pom.xml")
+        // Set the tag for the development image: version + build number
+        devTag  = "${version}-${BUILD_NUMBER}"
       }
       steps{
         echo "Building OpenShift container image tasks:${devTag}"
