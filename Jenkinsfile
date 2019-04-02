@@ -4,52 +4,41 @@ def components_project = "${name_prefix}-components"
 def app_project_dev    = "${name_prefix}-tasks-dev"
 def app_project_prod   = "${name_prefix}-tasks-prod"
 
+
+// Define Maven Command. Make sure it points to the correct
+// settings for our Nexus installation (use the service to
+// bypass the router). The file nexus_openshift_settings.xml
+// needs to be in the Source Code repository.
 def mvnCmd = "mvn -s ./nexus_openshift_settings.xml"
 
+
 pipeline {
-  agent{
-  // Run this pipeline on the custom{ Maven Slave pod} which has JDK and Maven installed.
-    kubernetes {
-      label 'maven-pod'
-      cloud 'openshift'
-      defaultContainer 'jnlp'
-      yaml """
-apiVersion: v1
-kind: Pod
-metadata:
-  labels:
-    some-label: some-label-value
-spec:
-  containers:
-  - name: jnlp
-    image: docker-registry.default.svc:5000/${name_prefix}-jenkins/jenkins-agent-appdev
-    command:
-    - cat
-    tty: true
-    note: doesnt have to be image name, my bad with wrong naming for pointing from defaultContainer..
-"""
-    }
-  }
+  agent any
+//  {
+//  // Run this pipeline on the custom{ Maven Slave pod} which has JDK and Maven installed.
+//    kubernetes {
+//      label 'maven-pod'
+//      cloud 'openshift'
+//      defaultContainer 'jnlp'
+//      yaml """
+//apiVersion: v1
+//kind: Pod
+//metadata:
+//  labels:
+//    some-label: some-label-value
+//spec:
+//  containers:
+//  - name: maven
+//    image: docker-registry.default.svc:5000/${name_prefix}-jenkins/jenkins-agent-appdev
+//    command:
+//    - cat
+//    tty: true
+//    
+//"""
+//    }
+//  }
   stages {
-//.. here to bluntly put the groovy scriptZ
-
-//podTemplate(
-  //label: "maven-pod",
- // cloud: "openshift",
-//  containers: [
-//    containerTemplate(
-//      name: "jnlp",
-//      workingDir: '/tmp',
-//      image: "docker-registry.default.svc:5000/${name_prefix}-jenkins/jenkins-agent-appdev"
-//    )
-//  ]
-//) {
-//  node('maven-pod') {
-
-    // Define Maven Command. Make sure it points to the correct
-    // settings for our Nexus installation (use the service to
-    // bypass the router). The file nexus_openshift_settings.xml
-    // needs to be in the Source Code repository.
+    //To bluntly wrap the original code as script leaving the groovy syntax in it, was my first attempt.
 
     // Checkout Source Code
     stage('Checkout Source') {
@@ -59,7 +48,6 @@ spec:
     }
 
   
-//    // Using Maven build the war file
 //    // Do not run tests in this step
 //    stage('Build war') {
 //    // The following variables need to be defined at the top level
@@ -74,10 +62,32 @@ spec:
 //    def devTag  = "${version}-${BUILD_NUMBER}"
 //    // Set the tag for the production image: version
 //    def prodTag = "${version}"
-//      echo "Building version ${version}"
-//    
-//      sh "${mvnCmd} clean package -DskipTests"
-//    }
+    
+    stage('declaratively Building Java binary') {
+      steps{
+        //def version    = getVersionFromPom("pom.xml")
+        //echo "Building version ${version}"
+        // Let's prevent "mvn not found":
+        //waitUntil()
+	//input 'Do we have tha PATH debuged?'
+        //|-or other way to set that up?:
+        //sh "sleep 600 && which mvn" 
+	echo "sh \"${mvnCmd} clean package -DskipTests"
+      }
+     }    
+    
+    // Build .jar with maven:
+    stage('Building Java binary') {
+      environment {
+          version = getVersionFromPom("pom.xml")
+      }
+      steps{
+        echo "Building version ${getVersionFromPom('pom.xml')}"  
+        //script{
+        // sh "${mvnCmd} clean package -DskipTests"
+        //}
+      }
+     }
 //  
 //    // Using Maven run the unit tests
 //    stage('Unit Tests') {
@@ -213,3 +223,5 @@ def getArtifactIdFromPom(pom) {
   def matcher = readFile(pom) =~ '<artifactId>(.+)</artifactId>'
   matcher ? matcher[0][1] : null
 }
+
+
