@@ -63,22 +63,11 @@ spec:
       }
     }
 
-// This commented block is from original groovy code and most likely can be deleted( after clearing some questions it rises, ideally).  
-//    // Do not run tests in this step
-//    stage('Build war') {
-//    // The following variables need to be defined at the top level
-//    // and not inside the scope of a stage - otherwise they would not
-//    // be accessible from other stages.
-//    // Extract version and other properties from the pom.xml
-//    def groupId    = getGroupIdFromPom("pom.xml")
-//    def artifactId = getArtifactIdFromPom("pom.xml")
-//    def version    = getVersionFromPom("pom.xml")
-//  
-//    def devTag  = "${version}-${BUILD_NUMBER}"
-//    // Set the tag for the production image: version
-//    def prodTag = "${version}"
-    
-    stage('declaratively Building Java binary') {
+
+  stage("build and test in parallel"){
+  parallel {
+    // start build and test jobs in parallel
+    stage('inspecting our environment') {
       steps{
         //def version    = getVersionFromPom("pom.xml")
         //echo "Building version ${version}"
@@ -117,6 +106,8 @@ spec:
         echo "sh \"${mvnCmd} test"
       }
     }
+  }//parallel
+  }//build&test wrapping par
   
     // Using Maven call SonarQube for Code Analysis
     stage('Code Analysis') {
