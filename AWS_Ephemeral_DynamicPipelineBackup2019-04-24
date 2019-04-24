@@ -26,9 +26,8 @@ def getArtifactIdFromPom(pom) {
 // settings for our Nexus installation (use the service to
 // bypass the router). The file nexus_openshift_settings.xml
 // needs to be in the Source Code repository.
-def mvnCmd = "mvn -s ./nexus_openshift_settings.xml"
-//def mvnCmd = "/opt/rh/rh-maven35/root/usr/bin/mvn -s ./nexus_openshift_settings.xml"
-//            //^Tested with realpath, but that didn't work either.
+//def mvnCmd = "mvn -s ./nexus_openshift_settings.xml"
+def mvnCmd = "/opt/rh/rh-maven35/root/usr/bin/mvn -s ./nexus_openshift_settings.xml"
 
 pipeline {
   agent {
@@ -60,26 +59,11 @@ spec:
       }
     }
 
-
-  stage("build and test in parallel"){
-  parallel {
-    // start build and test jobs in parallel
     stage('inspecting our environment') {
       steps{
-        //def version    = getVersionFromPom("pom.xml")
-        //echo "Building version ${version}"
-        // Let's prevent "mvn not found":
-        //waitUntil()
-	//input 'Do we have tha PATH debuged?'
-        //|-or other way to set that up?:
-        //sh "sleep 600 && which mvn" 
-        
-        // Testing:
-        sh 'whoami'
-        sh 'bash -c "echo hello"'
-        sh 'cat /etc/*release'
-        sh "${mvnCmd} clean package -DskipTests"
-	//echo """did not work: sh "export PATH=${M2_HOME}/bin:${PATH} && ${mvnCmd} clean package -DskipTests" """
+        //sh "sleep 600 && which mvn"//also weird with realpath this time `which` being ok
+        sh 'whoami' //default is good)
+        sh 'cat /etc/*release' //'deCent!
       }
     }    
     
@@ -91,7 +75,7 @@ spec:
       steps{
         echo "Building version ${getVersionFromPom('pom.xml')}"  
         //script{
-        // sh "${mvnCmd} clean package -DskipTests"
+         echo 'sh "${mvnCmd} clean package -DskipTests"'
         //}
       }
      }
@@ -103,9 +87,7 @@ spec:
         echo "sh \"${mvnCmd} test"
       }
     }
-  }//parallel
-  }//build&test wrapping par
-  
+
     // Using Maven call SonarQube for Code Analysis
     stage('Code Analysis') {
       environment {
