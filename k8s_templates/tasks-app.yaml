@@ -35,7 +35,7 @@ spec:
         terminationMessagePolicy: File
         volumeMounts:
         - name: config-volume
-          mountPath: /configuration
+          mountPath: /opt/jboss/configuration
       dnsPolicy: ClusterFirst
       imagePullSecrets:
       - name: _REGISTRY_SECRET_NAME_
