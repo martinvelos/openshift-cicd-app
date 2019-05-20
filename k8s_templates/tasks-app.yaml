@@ -33,6 +33,9 @@ spec:
         resources: {}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
+        volumeMounts:
+        - name: config-volume
+          mountPath: /opt/jboss/wildfly/standalone/configuration
       dnsPolicy: ClusterFirst
       imagePullSecrets:
       - name: _REGISTRY_SECRET_NAME_
@@ -40,6 +43,10 @@ spec:
       schedulerName: default-scheduler
       securityContext: {}
       terminationGracePeriodSeconds: 30
+      volumes:
+      - name: config-volume
+        configMap:
+          name: tasks-config
 status: {}
 ---
 apiVersion: v1
