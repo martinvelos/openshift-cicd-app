@@ -56,7 +56,6 @@ metadata:
     app: tasks
   name: tasks
 spec:
-  externalTrafficPolicy: Cluster
   ports:
   - port: 8080
     protocol: TCP
@@ -64,6 +63,4 @@ spec:
   selector:
     app: tasks
   sessionAffinity: None
-  type: LoadBalancer
-status:
-  loadBalancer: {}
+  type: ClusterIP
