@@ -3,15 +3,15 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   labels:
-    app: tasks
-  name: tasks
+    app: _PREFIX_tasks
+  name: _PREFIX_tasks
 spec:
   progressDeadlineSeconds: 2147483647
   replicas: 1
   revisionHistoryLimit: 10
   selector:
     matchLabels:
-      app: tasks
+      app: _PREFIX_tasks
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -21,7 +21,7 @@ spec:
     metadata:
       creationTimestamp: null
       labels:
-        app: tasks
+        app: _PREFIX_tasks
     spec:
       containers:
       - image: _IMAGE_
@@ -46,21 +46,21 @@ spec:
       volumes:
       - name: config-volume
         configMap:
-          name: tasks-config
+          name: _PREFIX_tasks-config
 status: {}
 ---
 apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: tasks
-  name: tasks
+    app: _PREFIX_tasks
+  name: _PREFIX_tasks
 spec:
   ports:
   - port: 8080
     protocol: TCP
     targetPort: 8080
   selector:
-    app: tasks
+    app: _PREFIX_tasks
   sessionAffinity: None
   type: ClusterIP
