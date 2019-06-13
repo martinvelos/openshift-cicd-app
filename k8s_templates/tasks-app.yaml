@@ -34,8 +34,12 @@ spec:
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
         volumeMounts:
-        - name: config-volume
-          mountPath: /opt/jboss/configuration
+        - mountPath: /opt/jboss/configuration/application-users.properties
+          name: jboss-config-users
+          subPath: application-users.properties
+        - mountPath: /opt/jboss/configuration/application-roles.properties
+          name: jboss-config-roles
+          subPath: application-roles.properties
       dnsPolicy: ClusterFirst
       imagePullSecrets:
       - name: _REGISTRY_SECRET_NAME_
@@ -44,8 +48,13 @@ spec:
       securityContext: {}
       terminationGracePeriodSeconds: 30
       volumes:
-      - name: config-volume
+      - name: jboss-config-users
         configMap:
+          defaultMode: 420
+          name: _PREFIX_tasks-config
+      - name: jboss-config-roles
+        configMap:
+          defaultMode: 420
           name: _PREFIX_tasks-config
 status: {}
 ---
