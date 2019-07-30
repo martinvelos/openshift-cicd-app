@@ -48,7 +48,7 @@
       <div class="collapse navbar-collapse navbar-collapse-1">
         <ul class="nav navbar-nav navbar-primary">
           <li class="active">
-            <a href="/index.html" class="active">Home</a>
+            <a href="/index.jsp" class="active">Home</a>
           </li>
         </ul>
       </div>
